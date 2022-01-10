@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,8 +59,8 @@ static void MX_ADC1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t readValue;
-uint8_t a;
+double readValue;
+double a;
 uint8_t b;
 /* USER CODE END 0 */
 
@@ -98,7 +98,7 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start(&hadc1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,20 +111,13 @@ int main(void)
 	  HAL_GPIO_WritePin(Speaker_GPIO_Port, Speaker_Pin,0);
 	  HAL_Delay(1000);
 	  */
-	 uint8_t pin = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12);
-	 uint8_t pin2 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14);
-	 uint8_t pin3 = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
-	 uint8_t pin4 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8);
-	 uint8_t pin5 = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
-	 uint16_t f1 = 18000;
-	 uint16_t f2 = 17000;
-	 uint16_t f3 = 16000;
-	 TIM2->ARR = 18000;
-	 HAL_Delay(1000);
-	 TIM2->ARR = 17000;
-	 HAL_Delay(1000);
-	 TIM2->ARR = 16000;
-	 HAL_Delay(1000);
+	 HAL_ADC_PollForConversion(&hadc1, 100);
+	 uint32_t value = HAL_ADC_GetValue(&hadc1);
+	 double ratio = pow(sqrt(2),(value/500)/12.0);
+	 a = value/500;
+	 readValue = ratio;
+	 TIM2->ARR = (int)((18000)*ratio);
+	 HAL_Delay(100);
 
 
 
@@ -272,6 +265,10 @@ static void MX_TIM2_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
