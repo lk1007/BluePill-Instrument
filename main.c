@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <math.h>
+#include <func.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,13 +56,25 @@ static void MX_TIM2_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
+
+
+uint32_t readPin(int*a){
+	HAL_ADC_PollForConversion(&hadc1, 100);
+
+	return HAL_ADC_GetValue(&hadc1);
+}
+
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 double readValue;
-double a;
-uint8_t b;
+int a;
+int b;
+int c;
+
 /* USER CODE END 0 */
 
 /**
@@ -77,12 +90,13 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
   a = 0;
-
   b = 0;
+  c = 0;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -97,8 +111,19 @@ int main(void)
   MX_TIM2_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
+
+
+
+
+  //Potentiometer init
   HAL_ADC_Start(&hadc1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+
+  //LCD init
+  functionSet(1,0,1);
+  setDir(1,0);
+  clearDisp();
+  showCursor(1,0,1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,21 +131,15 @@ int main(void)
   while (1)
   {
 	  /*
-	  HAL_GPIO_WritePin(Speaker_GPIO_Port, Speaker_Pin,1);
-	  HAL_Delay(1000);
-	  HAL_GPIO_WritePin(Speaker_GPIO_Port, Speaker_Pin,0);
-	  HAL_Delay(1000);
-	  */
-	 HAL_ADC_PollForConversion(&hadc1, 100);
-	 uint32_t value = HAL_ADC_GetValue(&hadc1);
-	 double ratio = pow(sqrt(2),(value/500)/12.0);
-	 a = value/500;
-	 readValue = ratio;
-	 TIM2->ARR = (int)((18000)*ratio);
-	 HAL_Delay(100);
+	  for(int i = 0;i < 10;i++){
+		writePin(i,1);
+		HAL_Delay(100);
+		writePin(i,0);
+		HAL_Delay(100);
+	  }*/
 
-
-
+	  // writeString("Hello");
+	  InstNote(&a,&b,&c);
   }
     /* USER CODE END WHILE */
 
@@ -261,13 +280,9 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 9000;
+  sConfigOC.Pulse = 18000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
@@ -289,30 +304,32 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1|GPIO_PIN_2|Speaker_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RS_Pin|RW_Pin|E_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PA1 PA2 Speaker_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_2|Speaker_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, D0_Pin|D1_Pin|D2_Pin|D3_Pin
+                          |D4_Pin|D5_Pin|D6_Pin|D7_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : RS_Pin RW_Pin E_Pin */
+  GPIO_InitStruct.Pin = RS_Pin|RW_Pin|E_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB12 PB13 PB14 PB15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : D0_Pin D1_Pin D2_Pin D3_Pin
+                           D4_Pin D5_Pin D6_Pin D7_Pin */
+  GPIO_InitStruct.Pin = D0_Pin|D1_Pin|D2_Pin|D3_Pin
+                          |D4_Pin|D5_Pin|D6_Pin|D7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA8 PA9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
 
