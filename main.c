@@ -137,8 +137,6 @@ int main(void)
 		writePin(i,0);
 		HAL_Delay(100);
 	  }*/
-
-	  // writeString("Hello");
 	  InstNote(&a,&b,&c);
   }
     /* USER CODE END WHILE */
