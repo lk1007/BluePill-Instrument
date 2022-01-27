@@ -18,6 +18,7 @@ void InstNote(int* a,int* b,int *c){
 	*a = notePeriod;
 	HAL_Delay(100);
 }
+//implement array of strings
 int prevSteps;
 void dispNote(int steps)
 {
